@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Modifier une fleur</title>
+    </head>
+    <body>
+
+        <h2>Modifier une fleur</h2>
+
+        <form id="fleurForm">
+            <label>Nom :</label><br>
+            <input type="text" id="name" required><br><br>
+
+            <label>Couleur :</label><br>
+            <input type="text" id="color" required><br><br>
+
+            <label>Prix :</label><br>
+            <input type="number" id="price" required><br><br>
+
+            <button type="submit">Mettre à jour la fleur</button>
+        </form>
+
+        <div id="result"></div>
+
+        <script>
+            const params = new URLSearchParams(window.location.search);
+            const fleurId = params.get('id'); // Permet de récupérer l'ID de la fleur au niveau de l'URL sous le format : ?id=<id>
+
+            // Ici on s'assure que l'utilisateur a fourni un ID dans l'URL
+            // S'il n'a pas fourni un ID, on affiche un message d'erreur
+            if (!fleurId) {
+                document.getElementById('result').innerText = "Erreur : Aucun ID fourni dans l'URL";
+                throw new Error("Aucun ID fourni dans l'URL");
+            }
+
+            // Ici on charge les données de la fleur demandée
+            async function loadFleur() {
+                try {
+                    // On cherche la fleur demandée et stocke les données dans la variable "fleur"
+                    const response = await fetch(`http://localhost:3000/api/fleurs/${fleurId}`);
+                    const fleur = await response.json();
+
+                    // Ici on s'assure que la fleur demandée a pu étre chargée ou qu'elle existe bien
+                    // Si ce n'est pas le cas, on affiche un message d'erreur
+                    if (!fleur || fleur.error) {
+                        document.getElementById('result').innerText = "Erreur : La fleur demandée n'a pas pu étre chargée ou la fleur n'existe pas";
+                        return;
+                    }
+
+                    // Ici on récupère les données de la fleur et
+                    // on les met dans les champs du formulaire
+                    document.getElementById('name').value = fleur.name;
+                    document.getElementById('color').value = fleur.color;
+                    document.getElementById('price').value = fleur.price;
+
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+
+            // Ici on appelle la fonction qui charge les données de la fleur
+            loadFleur();
+
+            // Ici on récupère les données du formulaire
+            const form = document.getElementById('fleurForm');
+
+            // Ici on ajoute un gestionnaire d'événement au formulaire
+            // On vérifie si l'utilisateur a appuyé sur le bouton "Mettre à jour la fleur"
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault(); // On utilise preventDefault() pour empecher le rechargement de la page
+
+                // On reconstruit un objet de type Fleur avec les données du formulaire
+                const data = {
+                    name: document.getElementById('name').value,
+                    color: document.getElementById('color').value,
+                    price: Number(document.getElementById('price').value)
+                };
+
+                // Ici on envoie la requête au serveur en utilisant fetch en utilisant la methode PUT
+                try {
+                    const response = await fetch(`http://localhost:3000/api/fleurs/${fleurId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    // Ici on récupère la réponse du serveur
+                    const result = await response.json();
+
+                    // Ici on affiche la réponse du serveur sous forme de texte
+                    document.getElementById('result').innerText =
+                        "Fleur mise à jour : " + JSON.stringify(result, null, 2);
+
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+
+        </script>
+
+    </body>
+</html>
