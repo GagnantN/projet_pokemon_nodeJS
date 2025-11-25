@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Créer un objet</title>
+</head>
+<body>
+
+    <h2>Créer un nouveau objet</h2>
+
+    <form id="objetForm">
+        <label>Nom :</label><br>
+        <input type="text" id="nom" required><br><br>
+
+        <label>Catégories :</label><br>
+        <input type="text" id="categories" required><br><br>
+
+        <label>Description :</label><br>
+        <input type="text" id="description" required><br><br>
+
+        <button type="submit">Créer l'objet'</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        const form = document.getElementById('objetForm');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // On utilise preventDefault() pour empecher le rechargement de la page afin d'afficher les données intégrées
+
+            // Ici on reconstruit un objet de type Objet avec les données du formulaire
+            const data = {
+                nom: document.getElementById('nom').value,
+                categories: document.getElementById('categories').value,
+                description: document.getElementById('description').value
+            };
+
+            // Ici on envoie la requête au serveur en utilisant fetch
+            // On utilise la methode POST car on veut créer un nouveau objet
+            try {
+                const response = await fetch('http://localhost:3000/api/objet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data) // On met les données dans le format JSON
+                });
+
+                // Ici on récupère la réponse du serveur qu'on affiche sous forme de text
+                const result = await response.json();
+                document.getElementById('result').innerText =
+                    "Réponse serveur : " + JSON.stringify(result, null, 2);
+
+            } catch (error) {
+                console.error("Erreur :", error);
+            }
+        });
+    </script>
+
+</body>
+</html>

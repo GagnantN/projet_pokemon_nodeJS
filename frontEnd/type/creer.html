@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Créer un type</title>
+    </head>
+    <body>
+
+        <h2>Créer un nouveau type</h2>
+
+        <form id="typeForm">
+            <label>Nom :</label><br>
+            <input type="text" id="nom" required><br><br>
+
+            <!-- FAIBLESSES -->
+            <label>Faiblesses :</label><br>
+            <div id="faiblesses"></div><br>
+
+            <!-- RESISTANCES -->
+            <label>Résistances :</label><br>
+            <div id="resistances"></div><br>
+
+            <!-- IMMUNITES -->
+            <label>Immunités :</label><br>
+            <div id="immunites"></div><br>
+
+            <button type="submit">Créer un type</button>
+        </form>
+
+        <div id="result"></div>
+
+
+        <script>
+            const API_URL = "http://localhost:3000/api/type";
+
+            const containers = {
+                faiblesses: document.getElementById('faiblesses'),
+                resistances: document.getElementById('resistances'),
+                immunites: document.getElementById('immunites'),
+            };
+
+            // Fonction qui crée une checkbox
+            function createCheckbox(type) {
+                const label = document.createElement("label");
+                const checkbox = document.createElement("input");
+
+                checkbox.type = "checkbox";
+                checkbox.value = type._id;
+
+                label.appendChild(checkbox);
+                label.append(" " + type.nom);
+                label.style.display = "block";
+
+                return label;
+            }
+
+            // Charger les types depuis l’API
+            async function loadTypes() {
+                const res = await fetch(API_URL);
+                const types = await res.json();
+
+                // Vider les conteneurs
+                Object.values(containers).forEach(div => div.innerHTML = "");
+
+                // Ajouter les checkbox
+                types.forEach(type => {
+                    containers.faiblesses.appendChild(createCheckbox(type));
+                    containers.resistances.appendChild(createCheckbox(type));
+                    containers.immunites.appendChild(createCheckbox(type));
+                });
+            }
+
+            // Récupérer les valeurs cochées
+            function getCheckedValues(container) {
+                return [...container.querySelectorAll("input:checked")].map(c => c.value);
+            }
+
+            // Soumission du formulaire
+            document.getElementById('typeForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const data = {
+                    nom: document.getElementById('nom').value,
+                    faiblesses: getCheckedValues(containers.faiblesses),
+                    resistances: getCheckedValues(containers.resistances),
+                    immunites: getCheckedValues(containers.immunites),
+                };
+
+                try {
+                    const res = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await res.json();
+
+                    document.getElementById('result').innerText =
+                        "Réponse serveur : " + JSON.stringify(result, null, 2);
+
+                    // Recharge les listes pour inclure le nouveau type
+                    loadTypes();
+
+                } catch (err) {
+                    console.error("Erreur :", err);
+                }
+            });
+
+            // Initialisation
+            loadTypes();
+        </script>
+
+    </body>
+</html>

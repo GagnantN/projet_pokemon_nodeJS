@@ -1,20 +1,14 @@
-const express = require('express');
-const cors = require('cors');
+const app = require('./app');
 const connectDB = require('./config/db');
 
-connectDB();
+const PORT = process.env.PORT || 3000;
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+async function startServer() {
+    await connectDB();
 
-app.use('/api/pokemon', require('./routes/pokemon'));
-app.use('/api/type', require('./routes/type'));
-app.use('/api/attaque', require('./routes/attaque'));
-app.use('/api/dresseur', require('./routes/dresseur'));
-app.use('/api/arene', require('./routes/arene'));
-app.use('/api/objet', require('./routes/objet'));
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+}
 
-app.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
-});
+startServer();

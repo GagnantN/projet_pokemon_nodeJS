@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier un objet</title>
+</head>
+    <body>
+
+        <h2>Modifier un objet</h2>
+
+        <form id="objetForm">
+            <label>Nom :</label><br>
+            <input type="text" id="nom" required><br><br>
+
+            <label>Catégories :</label><br>
+            <input type="text" id="categories" required><br><br>
+
+            <label>Description :</label><br>
+            <input type="text" id="description" required><br><br>
+
+            <button type="submit">Mettre à jour l'objet'</button>
+        </form>
+
+        <div id="result"></div>
+
+        <script>
+            const params = new URLSearchParams(window.location.search);
+            const objetId = params.get('id'); // Permet de récupérer l'ID de l'objet au niveau de l'URL sous le format : ?id=<id>
+
+            // Ici on s'assure que l'utilisateur a fourni un ID dans l'URL
+            // S'il n'a pas fourni un ID, on affiche un message d'erreur
+            if (!objetId) {
+                document.getElementById('result').innerText = "Erreur : Aucun ID fourni dans l'URL";
+                throw new Error("Aucun ID fourni dans l'URL");
+            }
+
+            // Ici on charge les données de l'objet demandée
+            async function loadObjet() {
+                try {
+                    // On cherche l'objet demandée et stocke les données dans la variable "objet"
+                    const response = await fetch(`http://localhost:3000/api/objet/${objetId}`);
+                    const objet = await response.json();
+
+                    // Ici on s'assure que l'objet demandée a pu étre chargée ou qu'elle existe bien
+                    // Si ce n'est pas le cas, on affiche un message d'erreur
+                    if (!objet || objet.error) {
+                        document.getElementById('result').innerText = "Erreur : L'objet demandée n'a pas pu étre chargée ou la fleur n'existe pas";
+                        return;
+                    }
+
+                    // Ici on récupère les données de l'objet et
+                    // on les met dans les champs du formulaire
+                    document.getElementById('nom').value = objet.nom;
+                    document.getElementById('categories').value = objet.categories;
+                    document.getElementById('description').value = objet.description;
+
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+
+            // Ici on appelle la fonction qui charge les données de l'objet
+            loadObjet();
+
+            // Ici on récupère les données du formulaire
+            const form = document.getElementById('objetForm');
+
+            // Ici on ajoute un gestionnaire d'événement au formulaire
+            // On vérifie si l'utilisateur a appuyé sur le bouton "Mettre à jour l'objet"
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault(); // On utilise preventDefault() pour empecher le rechargement de la page
+
+                // On reconstruit un objet de type Objet avec les données du formulaire
+                const data = {
+                    nom: document.getElementById('nom').value,
+                    categories: document.getElementById('categories').value,
+                    description: document.getElementById('description').value
+                };
+
+                // Ici on envoie la requête au serveur en utilisant fetch en utilisant la methode PUT
+                try {
+                    const response = await fetch(`http://localhost:3000/api/objet/${objetId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    // Ici on récupère la réponse du serveur
+                    const result = await response.json();
+
+                    // Ici on affiche la réponse du serveur sous forme de texte
+                    document.getElementById('result').innerText =
+                        "Fleur mise à jour : " + JSON.stringify(result, null, 2);
+
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+
+        </script>
+    </body>
+</html>
